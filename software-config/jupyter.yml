@@ -1,0 +1,95 @@
+# run miniconda.yml once after reinstall before this
+- hosts: spoketest
+  vars:
+  roles:
+    - evandam.conda
+  tasks:
+    - name: install scientific libraries
+      conda:
+        name:
+          - fonts-anaconda
+          - plotly
+          - scipy
+          - matplotlib
+          - bokeh
+          - seaborn
+          - ipympl
+          - mpld3
+          - jupyterlab
+          - jupyterhub
+          - sudospawner
+          - jupyterhub-idle-culler
+        channels: conda-forge
+        executable: /usr/local/anaconda/bin/conda
+    - name: create jupyterhub service user
+      user:
+        name: jupyterhub
+        comment: Jupytehub service user
+        local: yes
+        system: yes
+        password: !
+        create_home: no
+        shell: /bin/false
+    - name: Create jupyterhub config catalog
+      file:
+        name: /etc/jupyterhub
+        state: directory
+        owner: jupyterhub
+        group: jupyterhub
+    - name: Create jupyterhub basic config
+      shell:
+        cmd: |
+          source /usr/local/anaconda/bin/activate
+          jupyterhub --generate-config -f /etc/jupyterhub/jupyterhub_config.py
+        creates: /etc/jupyterhub/jupyterhub_config.py
+    - name: Make jupyterlab the default interface
+      lineinfile:
+        path: /etc/jupyterhub/jupyterhub_config.py
+        line: c.Spawner.default_url = '/lab'
+    - name: set up environment for jupyterhub systemd service
+      copy:
+        dest: /etc/jupyterhub/condaenv
+        content: |
+          MINICONDA_DIR=/usr/local/anaconda
+          PATH=/usr/local/anaconda/bin:/bin:/usr/bin
+    - name: allow jupyterhub user to spawn kernel as other users
+      copy:
+        dest: /etc/sudoers.d/jupyterhub
+        content: |
+          jupyterhub ALL=(ALL) NOPASSWD:/usr/local/anaconda/bin/sudospawner
+    - name: enable idle server culler
+      blockinfile:
+        path: /etc/jupyterhub/jupyterhub_config.py
+        block: |
+          c.JupyterHub.services = [
+              {
+                'name': 'cull-idle',
+                'admin': True,
+                'command': ['/usr/local/anaconda/bin/cull_idle_servers.py', '--timeout=3600'],
+              }
+            ]
+    - name: Create systemd unit file for jupyterhub
+      copy:
+        dest: /etc/systemd/system/jupyterhub.service
+        content: |
+          [Unit]
+          Description=Jupyterhub
+
+          [Service]
+          User=jupyterhub
+          EnvironmentFile=/etc/jupyterhub/condaenv
+          ExecStart=/usr/local/anaconda/bin/jupyterhub --JupyterHub.spawner_class=sudospawner.SudoSpawner
+          WorkingDirectory=/etc/jupyterhub
+
+          [Install]
+          WantedBy=multi-user.target
+          After=network-online.target
+    - name: Establish jupyterhub system service
+      systemd:
+        name: jupyterhub
+        enabled: yes
+        daemon_reload: yes
+        state: started
+# TODO
+# add jupyterlab widget plots (only works in notebook, not in console)
+#jupyter labextension install @jupyter-widgets/jupyterlab-manager

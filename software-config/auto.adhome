@@ -1,0 +1,21 @@
+#!/usr/bin/bash
+
+if [ -f /etc/homeshares ]; then
+    source /etc/homeshares
+else
+    exit 1
+fi
+
+USERNAME=$1
+
+if [ ! -z $USERNAME ]; then
+    set -f
+    pwstring=$(getent passwd $USERNAME)
+    if [ ! -z "$pwstring" ]; then
+        shortname=${USERNAME%@*}
+        userinfo=(${pwstring//:/ })
+        uid=${userinfo[2]}
+        gid=${userinfo[3]}
+        echo "-fstype=cifs,vers=3.0,sec=krb5,file_mode=0700,dir_mode=0700,username=$USERNAME,uid=$uid,gid=$gid,cruid=$uid,domain=$DOMAIN ://${FILESERVER}/${HOMESHARE}/$shortname"
+    fi
+fi

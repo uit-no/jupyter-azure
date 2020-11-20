@@ -1,0 +1,24 @@
+# must run miniconda.yml once after reinstall
+- hosts: spoketest
+  vars:
+  roles:
+    - evandam.conda
+  tasks:
+    - name: install base R packages
+      conda:
+        name:
+          - r-base=4.0.2
+          - r-systemfonts
+          - r-dplyr
+          # - rstudio
+          - r-jpeg
+          - r-cairo
+          - r-tidyverse
+          - r-irkernel # for r in jupyter
+        channels: conda-forge
+        executable: /usr/local/anaconda/bin/conda
+    # - name: rstudio-server
+    #   yum:
+    #     name:
+    #       - "https://download2.rstudio.org/server/centos6/x86_64/rstudio-server-rhel-1.2.5033-x86_64.rpm"
+    #     state: present

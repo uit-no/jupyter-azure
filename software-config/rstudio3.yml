@@ -1,0 +1,32 @@
+# must run miniconda.yml once after reinstall
+- hosts: spoketest
+  vars:
+  roles:
+    - evandam.conda
+  tasks:
+    - name: install base R packages
+      conda:
+        name:
+          - r-base=3.6.2
+          - r-systemfonts
+          - r-dplyr
+          # - rstudio
+          - r-jpeg
+          - r-cairo
+          - r-tidyverse
+          - r-irkernel # for r in jupyter
+        channels: conda-forge
+        executable: /usr/local/anaconda/bin/conda
+        environment: r3.6
+    - name: make R 3.6 available in jupyter
+      shell:
+        cmd: |
+          source /usr/local/anaconda/bin/activate
+          #conda activate r3.6
+          /usr/local/anaconda/envs/r3.6/bin/R -e "IRkernel::installspec(name = 'ir36', displayname = 'R 3.6', user = FALSE, sys_prefix = TRUE)"
+        creates: /usr/local/share/jupyter/kernels/ir36
+      # - name: rstudio-server
+    #   yum:
+    #     name:
+    #       - "https://download2.rstudio.org/server/centos6/x86_64/rstudio-server-rhel-1.2.5033-x86_64.rpm"
+    #     state: present

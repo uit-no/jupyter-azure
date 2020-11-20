@@ -1,0 +1,4 @@
+# config for home share to automounted upon user login
+DOMAIN=ad.contoso.com
+FILESERVER=storagename.file.core.windows.net
+HOMESHARE=homes

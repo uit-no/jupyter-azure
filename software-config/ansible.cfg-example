@@ -1,0 +1,5 @@
+[defaults]
+pipelining = True
+#password to decode encrypted password in adminvars.yml
+vault_password_file = /dev/shm/apw 
+inventory = hosts

@@ -1,0 +1,40 @@
+---
+- name: Create dir for serial-getty unit file
+  file:
+    dest: /etc/systemd/system/serial-getty@ttyS0.service.d/
+    state: directory
+- name: Create service for ttyS0 logon with agetty
+  copy:
+    dest: /etc/systemd/system/serial-getty@ttyS0.service.d/override.conf
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=-/sbin/agetty -o '-p -- \\u' --keep-baud 115200,38400,9600 --noclear --autologin root ttyS0 $TERM
+  register: unitcreated
+- name: Reload daemons
+  command:
+    cmd: systemctl daemon-reload
+  when: unitcreated is changed
+- name: Add passwordless root login on ttyS0 in pam
+  pamd:
+    name: login
+    type: auth
+    control: substack
+    module_path: system-auth
+    new_type: auth
+    new_control: sufficient
+    new_module_path: pam_listfile.so
+    module_arguments: "item=tty sense=allow file=/etc/securetty onerr=fail apply=root"
+    state: before
+
+- name: Add ttyS0 to securetty
+  copy:
+    dest: /etc/securetty
+    content: |
+      ttyS0
+
+- name: Enable and start the serial console autologin service
+  systemd:
+    name: serial-getty@ttyS0.service
+    enabled: yes
+    state: started

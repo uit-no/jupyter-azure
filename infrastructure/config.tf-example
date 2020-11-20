@@ -1,0 +1,21 @@
+
+provider "azurerm" {
+  # version = "=2.8.0"
+  # The t-rstdio spoke subscription
+  subscription_id = "aunthoentuhoent-sotahusnoethu-seustoehatuhoe"
+  features {}
+}
+
+# Keep terraform state secure in Azure storage account.
+# If you loose the state you're f....d. (it is easier to destroy
+# and rebuild than restoring state)
+terraform {
+  backend "azurerm" {
+    subscription_id      = "aunthoentuhoent-sotahusnoethu-seustoehatuhoe"
+    resource_group_name  = "t-tfstate"
+    storage_account_name = "satstate"
+    container_name       = "terraformstate"
+    key                  = "terraform.tfstate"
+    #access_key = "" # not needed if you are logged into azure with az login
+  }
+}

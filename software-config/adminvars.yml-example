@@ -1,0 +1,17 @@
+---
+admin_user: adadminuser
+ad_domain: AD.CONTOSO.COM
+# put encrypted admin password here
+# encrypt with command ansible-vault encrypt_string
+# it asks for encryption passphrase twice and then
+# the passwd string to encrypt. Type admin pw with
+# no newline! End it with hitting ctrl-d twice.
+# This can be autodecoded by providing password in a file
+# or as output from a script. See ansible-vault documentation.
+password: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  33326263623437343261333164313761653364643764326665653833653130396338393261616466
+  3164396135396538616438323533663031376335653566390a393938626261613133623366623631
+  39656231613133386132353566636339646231333235313036666663336361663562366534363366
+  3539336233396264640a386437313861613335346539303539643034313439663434343832613432
+  3263

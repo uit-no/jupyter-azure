@@ -1,0 +1,7 @@
+# files that can contain secrets.
+# every file should have an -example version
+ansible.cfg
+homeshares
+hosts
+adminvars.yml
+

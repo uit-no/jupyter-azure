@@ -1,0 +1,10 @@
+[spoketest]
+172.17.18.132
+172.17.18.133
+
+[spoketest:vars]
+ansible_user = sysadm 
+ansible_become = true 
+ansible_become_user = root
+ansible_python_interpreter = /usr/libexec/platform-python
+

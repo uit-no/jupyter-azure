@@ -1,0 +1,77 @@
+---
+- hosts: spoketest
+  vars_files:
+    - ./adminvars.yml
+  roles:
+    - stdazurevm
+  tasks:
+    - name: set timezone to Europe/Oslo
+      timezone:
+        name: Europe/Oslo
+    - name: disable extras repo
+      ini_file:
+        path: /etc/yum.repos.d/CentOS-Extras.repo
+        section: extras
+        option: enabled
+        value: "0"
+
+    - name: Install basic system tools
+      yum:
+        name:
+          - lsof
+          - dstat
+          - nmap
+          - nmap-ncat
+          - oddjob
+          - oddjob-mkhomedir
+          - adcli
+          - samba-common-tools
+          - krb5-workstation
+          - cifs-utils
+          - autofs
+          - xorg-x11-fonts-Type1
+        state: latest
+    - name: Register with domain
+      command:
+        cmd: realm join -U '{{ admin_user }}' '{{ ad_domain }}'
+        stdin: "{{ password }}"
+        creates: /etc/krb5.keytab
+      no_log: True # Do not expose password in logs!!!!
+    - name: Set adhome root dir
+      ini_file:
+        section: domain/ad.uit.no
+        path: /etc/sssd/sssd.conf
+        option: fallback_homedir
+        value: /azhome/%u@%d
+    - name: Set kerberos ticket timeout
+      ini_file:
+        section: domain/ad.uit.no
+        path: /etc/sssd/sssd.conf
+        option: krb5_renewable_lifetime
+        value: 7d
+    - name: Set kerberos ticket renew interval
+      ini_file:
+        section: domain/ad.uit.no
+        path: /etc/sssd/sssd.conf
+        option: krb5_renew_interval
+        value: 500
+    - name: Create autofs config for ad home dirs
+      copy:
+        dest: /etc/auto.master.d/azhome.autofs
+        content: |
+          /azhome program /etc/auto.adhome --timeout=10
+    - name: Create ad mount command
+      copy:
+        dest: /etc/auto.adhome
+        src: auto.adhome
+        mode: +rx
+    - name: Create home share config
+      copy:
+        dest: /etc/homeshares
+        src: homeshares
+    - name: start autofs system service
+      systemd:
+        name: autofs
+        enabled: yes
+        daemon_reload: yes
+        state: started
