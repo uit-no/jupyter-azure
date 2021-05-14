@@ -19,6 +19,14 @@
           - jupyterhub
           - sudospawner
           - jupyterhub-idle-culler
+          - hdf5  
+          - netcdf4
+          - xarray
+          - satpy
+          - sympy
+          - geopandas
+          - geojson
+          - folium
         channels: conda-forge
         executable: /usr/local/anaconda/bin/conda
     - name: create jupyterhub service user
