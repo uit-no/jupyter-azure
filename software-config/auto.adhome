@@ -16,6 +16,6 @@ if [ ! -z $USERNAME ]; then
         userinfo=(${pwstring//:/ })
         uid=${userinfo[2]}
         gid=${userinfo[3]}
-        echo "-fstype=cifs,vers=3.0,sec=krb5,file_mode=0700,dir_mode=0700,username=$USERNAME,uid=$uid,gid=$gid,cruid=$uid,domain=$DOMAIN,nobrl,mfsymlinks,nostrictsync,noblocksend ://${FILESERVER}/${HOMESHARE}/$shortname"
+        echo "-fstype=cifs,vers=3.1.1,sec=ntlmssp,file_mode=0700,dir_mode=0700,cred=/etc/smbhome.conf,uid=$uid,gid=$gid,cruid=$uid,nobrl,mfsymlinks,nostrictsync,noblocksend ://${FILESERVER}/${HOMESHARE}/$shortname"
     fi
 fi

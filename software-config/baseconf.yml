@@ -33,7 +33,7 @@
         state: latest
     - name: Register with domain
       command:
-        cmd: realm join -U '{{ admin_user }}' '{{ ad_domain }}'
+        cmd: realm join -U '{{ admin_user }}' '{{ extra_join_flags }}' '{{ ad_domain }}'
         stdin: "{{ password }}"
         creates: /etc/krb5.keytab
       no_log: True # Do not expose password in logs!!!!
@@ -69,6 +69,11 @@
       copy:
         dest: /etc/homeshares
         src: homeshares
+    - name: Mount credentials
+      copy:
+        dest: /etc/smbhome.conf
+        src: smbhome.conf
+        mode: 0600
     - name: start autofs system service
       systemd:
         name: autofs
