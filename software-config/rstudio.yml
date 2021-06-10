@@ -7,7 +7,7 @@
     - name: install base R packages
       conda:
         name:
-          - r-base=4.0.2
+          - r-base
           - r-systemfonts
           - r-dplyr
           # - rstudio
@@ -16,7 +16,7 @@
           - r-tidyverse
           - r-irkernel # for r in jupyter
         channels: conda-forge
-        executable: /usr/local/anaconda/bin/conda
+        executable: /usr/local/anaconda/bin/mamba
     # - name: rstudio-server
     #   yum:
     #     name:

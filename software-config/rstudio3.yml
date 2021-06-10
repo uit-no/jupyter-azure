@@ -16,15 +16,17 @@
           - r-tidyverse
           - r-irkernel # for r in jupyter
         channels: conda-forge
-        executable: /usr/local/anaconda/bin/conda
+        executable: /usr/local/anaconda/bin/mamba
         environment: r3.6
     - name: make R 3.6 available in jupyter
       shell:
         cmd: |
-          source /usr/local/anaconda/bin/activate
-          #conda activate r3.6
+          #source /usr/local/anaconda/bin/activate
+          #/usr/local/anaconda/bin/conda activate r3.6
           /usr/local/anaconda/envs/r3.6/bin/R -e "IRkernel::installspec(name = 'ir36', displayname = 'R 3.6', user = FALSE, sys_prefix = TRUE)"
-        creates: /usr/local/share/jupyter/kernels/ir36
+        creates: /usr/local/anaconda/share/jupyter/kernels/ir36
+      environment:
+        PATH:  /usr/local/anaconda/bin/:{{ ansible_env.PATH }}
       # - name: rstudio-server
     #   yum:
     #     name:
