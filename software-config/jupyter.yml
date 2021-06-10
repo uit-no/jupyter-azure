@@ -26,6 +26,7 @@
           - jupyterhub
           - sudospawner
           - jupyterhub-idle-culler
+          - oauthenticator
           - jupyterlab-git
           - jupyterlab_widgets
           - hdf5
@@ -87,6 +88,7 @@
       copy:
         dest: /etc/jupyterhub/condaenv
         content: |
+          AAD_TENANT_ID='{{ aad_tenant_id }}'
           MINICONDA_DIR=/usr/local/anaconda
           PATH=/usr/local/texlive/bin/x86_64-linux/:/usr/local/anaconda/bin:/bin:/usr/bin
         mode: 0644
@@ -109,6 +111,21 @@
                 'command': ['/usr/local/anaconda/bin/cull_idle_servers.py', '--timeout=3600'],
               }
             ]
+      notify:
+        - Restart jupyterhub
+    - name: Setup jupyterhub AAD authentication
+      blockinfile:
+        path: /etc/jupyterhub/jupyterhub_config.py
+        block: |
+          import os
+          from oauthenticator.azuread import AzureAdOAuthenticator
+          c.JupyterHub.authenticator_class = AzureAdOAuthenticator
+          c.Application.log_level = 'DEBUG'
+          c.AzureAdOAuthenticator.tenant_id = os.environ.get('AAD_TENANT_ID')
+          c.AzureAdOAuthenticator.oauth_callback_url = '{{ aad_oauth_callback_url }}'
+          c.AzureAdOAuthenticator.client_id = '{{ aad_client_id }}'
+          c.AzureAdOAuthenticator.client_secret = '{{ aad_client_secret }}'
+          c.AzureAdOAuthenticator.username_claim="preferred_username"
       notify:
         - Restart jupyterhub
 
