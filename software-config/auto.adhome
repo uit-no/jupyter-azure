@@ -10,12 +10,16 @@ USERNAME=$1
 
 if [ ! -z $USERNAME ]; then
     set -f
-    pwstring=$(getent passwd $USERNAME)
+    pwstring=$(/bin/getent passwd $USERNAME)
     if [ ! -z "$pwstring" ]; then
         shortname=${USERNAME%@*}
         userinfo=(${pwstring//:/ })
         uid=${userinfo[2]}
         gid=${userinfo[3]}
+        # autogenerate home for new users
+        # doesn't matter if it exists already, then mkdir just returns an error message.
+        /bin/smbclient -A /etc/smbhome.conf //${FILESERVER}/${HOMESHARE}/ -c "mkdir ${shortname}" >& /dev/null
+        # return mount info to autofs
         echo "-fstype=cifs,vers=3.1.1,sec=ntlmssp,file_mode=0700,dir_mode=0700,cred=/etc/smbhome.conf,uid=$uid,gid=$gid,cruid=$uid,nobrl,mfsymlinks,nostrictsync,noblocksend ://${FILESERVER}/${HOMESHARE}/$shortname"
     fi
 fi
