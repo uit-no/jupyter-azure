@@ -1,0 +1,45 @@
+---
+- hosts: spoketest
+  roles:
+    - stdazurevm
+  tasks:
+    - name: Microsoft yum repo
+      yum_repository:
+        name: microsoft
+        description: Microsoft rpm repo
+        baseurl: https://packages.microsoft.com/rhel/8/prod/
+    - name: Microsoft rpm signing key
+      command:
+        cmd: rpm --import http://packages.microsoft.com/keys/microsoft.asc
+    - name: Update system
+      yum:
+        name: "*"
+        state: latest
+      notify:
+        - Reboot system
+    - name: set timezone to Europe/Oslo
+      timezone:
+        name: Europe/Oslo
+    - name: set hostname in hosts
+      lineinfile:
+        path: /etc/hosts
+        regexp: '^(127\.0\.0\.1) +(localhost.*)'
+        line: \g<1> {{ ansible_hostname }} \g<2>
+        backrefs: yes
+    - name: upload defender onboarding file
+      copy:
+        dest: /etc/opt/microsoft/mdatp/
+        src: mdatp_onboard.json
+        mode: 0644
+    - name: Install defender
+      yum:
+        name: mdatp
+    - name: enable defender service
+      systemd:
+        name: mdatp
+        enabled: yes
+        state: started
+  handlers:
+    - name: Reboot system
+      command:
+        cmd: echo reboot
