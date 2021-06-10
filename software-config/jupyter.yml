@@ -1,9 +1,16 @@
 # run miniconda.yml once after reinstall before this
 - hosts: spoketest
-  vars:
+  vars_files:
+    - ./adminvars.yml
   roles:
     - evandam.conda
   tasks:
+    - name: install mamba (a faster conda)
+      conda:
+        name:
+          - mamba
+        channels: conda-forge
+        executable: /usr/local/anaconda/bin/conda
     - name: install scientific libraries
       conda:
         name:
@@ -19,7 +26,9 @@
           - jupyterhub
           - sudospawner
           - jupyterhub-idle-culler
-          - hdf5  
+          - jupyterlab-git
+          - jupyterlab_widgets
+          - hdf5
           - netcdf4
           - xarray
           - satpy
@@ -27,8 +36,12 @@
           - geopandas
           - geojson
           - folium
+          - nbconvert
+          - pandoc
+          - psycopg2
+          #- texlive-core
         channels: conda-forge
-        executable: /usr/local/anaconda/bin/conda
+        executable: /usr/local/anaconda/bin/mamba
     - name: create jupyterhub service user
       user:
         name: jupyterhub
@@ -44,27 +57,47 @@
         state: directory
         owner: jupyterhub
         group: jupyterhub
+        mode: 0755
     - name: Create jupyterhub basic config
       shell:
         cmd: |
           source /usr/local/anaconda/bin/activate
-          jupyterhub --generate-config -f /etc/jupyterhub/jupyterhub_config.py
+          /usr/local/anaconda/bin/jupyterhub --generate-config -f /etc/jupyterhub/jupyterhub_config.py
         creates: /etc/jupyterhub/jupyterhub_config.py
+    - name: Restrict access to jupyterhub config
+      file:
+        name: /etc/jupyterhub/jupyterhub_config.py
+        owner: jupyterhub
+        group: jupyterhub
+        mode: 0600
     - name: Make jupyterlab the default interface
       lineinfile:
         path: /etc/jupyterhub/jupyterhub_config.py
         line: c.Spawner.default_url = '/lab'
+      notify:
+        - Restart jupyterhub
+    - name: Jupyterhub backend db connection
+      lineinfile:
+        path: /etc/jupyterhub/jupyterhub_config.py
+        line: c.JupyterHub.db_url  = "postgresql://jupdb@jupdb:{{ dbpassword }}@jupdb.postgres.database.azure.com:5432/jupyter?sslmode=require"
+      no_log: True
+      notify:
+        - Restart jupyterhub
     - name: set up environment for jupyterhub systemd service
       copy:
         dest: /etc/jupyterhub/condaenv
         content: |
           MINICONDA_DIR=/usr/local/anaconda
-          PATH=/usr/local/anaconda/bin:/bin:/usr/bin
+          PATH=/usr/local/texlive/bin/x86_64-linux/:/usr/local/anaconda/bin:/bin:/usr/bin
+        mode: 0644
+      notify:
+        - Restart jupyterhub
     - name: allow jupyterhub user to spawn kernel as other users
       copy:
         dest: /etc/sudoers.d/jupyterhub
         content: |
           jupyterhub ALL=(ALL) NOPASSWD:/usr/local/anaconda/bin/sudospawner
+        mode: 0640
     - name: enable idle server culler
       blockinfile:
         path: /etc/jupyterhub/jupyterhub_config.py
@@ -76,6 +109,9 @@
                 'command': ['/usr/local/anaconda/bin/cull_idle_servers.py', '--timeout=3600'],
               }
             ]
+      notify:
+        - Restart jupyterhub
+
     - name: Create systemd unit file for jupyterhub
       copy:
         dest: /etc/systemd/system/jupyterhub.service
@@ -92,12 +128,18 @@
           [Install]
           WantedBy=multi-user.target
           After=network-online.target
+        mode: 0644
     - name: Establish jupyterhub system service
       systemd:
         name: jupyterhub
         enabled: yes
         daemon_reload: yes
         state: started
+  handlers:
+    - name: Restart jupyterhub
+      systemd:
+        name: jupyterhub
+        state: restarted
 # TODO
 # add jupyterlab widget plots (only works in notebook, not in console)
 #jupyter labextension install @jupyter-widgets/jupyterlab-manager
