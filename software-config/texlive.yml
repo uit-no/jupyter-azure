@@ -1,0 +1,19 @@
+---
+- hosts: spoketest
+  vars:
+    texlive_mirror: https://ftp.snt.utwente.nl/pub/software/tex/systems/texlive/tlnet/
+    scheme: small
+  roles:
+    - y-yu.texlive
+  tasks:
+    - name: Setup texlive path
+      copy:
+        dest: /etc/profile.d/texlive.sh
+        content: |
+          export PATH=/usr/local/texlive/bin/x86_64-linux/:$PATH
+        mode: 0644
+    - name: Install texlive packages
+      shell:
+        cmd: |
+          source /etc/profile.d/texlive.sh
+          tlmgr install tcolorbox environ ucs adjustbox collectbox titling enumitem times rsfs
