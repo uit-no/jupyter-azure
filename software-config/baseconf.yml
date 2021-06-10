@@ -2,21 +2,8 @@
 - hosts: spoketest
   vars_files:
     - ./adminvars.yml
-  roles:
-    - stdazurevm
   tasks:
-    - name: set timezone to Europe/Oslo
-      timezone:
-        name: Europe/Oslo
-    - name: disable extras repo
-      ini_file:
-        path: /etc/yum.repos.d/CentOS-Extras.repo
-        section: extras
-        option: enabled
-        value: "0"
-        mode: 0644
-
-    - name: Install basic system tools
+    - name: Install basic system tools (CentOs)
       yum:
         name:
           - lsof
@@ -31,10 +18,39 @@
           - cifs-utils
           - autofs
           - xorg-x11-fonts-Type1
+          - urw-base35-fonts
+          - perl-Digest-MD5
+          # - urw-base35-fonts-20170801-10
+          # - urw-base35-standard-symbols-ps-fonts-20170801-10
+          #- texlive-xetex
+          #- texlive-xltxtra
+          - git
         state: present
+      when: ansible_distribution == "CentOS"
+    - name: Install basic system tools (Ubuntu)
+      apt:
+        name:
+          - samba-client
+          - realmd
+          - libnss-sss
+          - libpam-sss
+          - sssd
+          - sssd-tools
+          - adcli
+          - samba-common-bin
+          - oddjob
+          - oddjob-mkhomedir
+          - packagekit
+          - autofs
+          - libuser
+          - texlive-latex-recommended
+          - texlive-fonts-recommended
+          - texlive-xetex
+          - pandoc
+      when: ansible_distribution == "Ubuntu"
     - name: Register with domain
       command:
-        cmd: realm join -U '{{ admin_user }}' '{{ extra_join_flags }}' '{{ ad_domain }}'
+        cmd: realm join -U '{{ admin_user }}'  '{{ ad_domain }}'
         stdin: "{{ password }}"
         creates: /etc/krb5.keytab
       no_log: True # Do not expose password in logs!!!!
@@ -44,27 +60,35 @@
         path: /etc/sssd/sssd.conf
         option: fallback_homedir
         value: /azhome/%u@%d
-        mode: 0644
+        mode: 0600
+      notify:
+        - Restart sssd
     - name: Set kerberos ticket timeout
       ini_file:
         section: domain/ad.uit.no
         path: /etc/sssd/sssd.conf
         option: krb5_renewable_lifetime
         value: 7d
-        mode: 0644
+        mode: 0600
+      notify:
+        - Restart sssd
     - name: Set kerberos ticket renew interval
       ini_file:
         section: domain/ad.uit.no
         path: /etc/sssd/sssd.conf
         option: krb5_renew_interval
         value: 500
-        mode: 0644
-    - name: Create autofs config for ad home dirs
+        mode: 0600
+      notify:
+        - Restart sssd
+    - name: Create autofs config for home dirs
       copy:
         dest: /etc/auto.master.d/azhome.autofs
         content: |
           /azhome program /etc/auto.adhome --timeout=10
         mode: 0644
+      notify:
+        - Restart autofs
     - name: Create ad mount command
       copy:
         dest: /etc/auto.adhome
@@ -86,3 +110,12 @@
         enabled: yes
         daemon_reload: yes
         state: started
+  handlers:
+    - name: Restart sssd
+      ansible.builtin.systemd:
+        name: sssd
+        state: restarted
+    - name: Restart autofs
+      ansible.builtin.systemd:
+        name: autofs
+        state: restarted
