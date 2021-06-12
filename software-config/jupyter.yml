@@ -40,6 +40,7 @@
           - nbconvert
           - pandoc
           - psycopg2
+          - k3d
           #- texlive-core
         channels: conda-forge
         executable: /usr/local/anaconda/bin/mamba
