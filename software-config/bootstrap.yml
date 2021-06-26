@@ -41,5 +41,4 @@
         state: started
   handlers:
     - name: Reboot system
-      command:
-        cmd: echo reboot
+      reboot:
