@@ -3,6 +3,12 @@
   vars_files:
     - ./adminvars.yml
   tasks:
+    - name: Enable MS repo
+      yum:
+        name:
+          - https://packages.microsoft.com/rhel/8/prod/packages-microsoft-prod.rpm
+        state: present
+      when: ansible_distribution == "CentOS"
     - name: Install basic system tools (CentOs)
       yum:
         name:
@@ -14,6 +20,7 @@
           - oddjob-mkhomedir
           - adcli
           - samba-common-tools
+          - samba-client
           - krb5-workstation
           - cifs-utils
           - autofs
@@ -25,6 +32,15 @@
           #- texlive-xetex
           #- texlive-xltxtra
           - git
+        state: present
+      when: ansible_distribution == "CentOS"
+    - name: Install MS sql drivers
+      environment:
+        ACCEPT_EULA: "y"
+      yum:
+        name:
+          - msodbcsql17
+          - mssql-tools
         state: present
       when: ansible_distribution == "CentOS"
     - name: Install basic system tools (Ubuntu)

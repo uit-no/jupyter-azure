@@ -14,6 +14,7 @@
     - name: install scientific libraries
       conda:
         name:
+          - pyodbc
           - fonts-anaconda
           - plotly
           - scipy
@@ -78,10 +79,26 @@
         line: c.Spawner.default_url = '/lab'
       notify:
         - Restart jupyterhub
-    - name: Jupyterhub backend db connection
+    - name: Jupyterhub backend db connection (postgres)
       lineinfile:
         path: /etc/jupyterhub/jupyterhub_config.py
         line: c.JupyterHub.db_url  = "postgresql://jupdb@jupdb:{{ dbpassword }}@jupdb.postgres.database.azure.com:5432/jupyter?sslmode=require"
+        state: absent
+      no_log: True
+      notify:
+        - Restart jupyterhub
+    - name: Jupyterhub backend db connection (Azure SQL)
+      blockinfile:
+        path: /etc/jupyterhub/jupyterhub_config.py
+        marker: "#{mark} DB BACKEND SETUP (ANSIBLE MANAGED BLOCK)"
+        block: |
+          import  urllib
+          params = urllib.parse.quote_plus(r'Driver={ODBC Driver 17 for SQL Server};'
+                                          +r'Server=tcp:jupsqltest.database.windows.net,1433;'
+                                          +r'Database=jupsqldb;UID=dbuser;Pwd=b2aKGl*p%bg1;'
+                                          +r'Encrypt=yes;TrustServerCertificate=yes;Connection Timeout=30;')
+          c.JupyterHub.db_url = 'mssql+pyodbc:///?odbc_connect={}'.format(params)
+        state: present
       no_log: True
       notify:
         - Restart jupyterhub
@@ -104,6 +121,7 @@
     - name: enable idle server culler
       blockinfile:
         path: /etc/jupyterhub/jupyterhub_config.py
+        marker: "#{mark} CULL IDLE SETUP (ANSIBLE MANAGED BLOCK)"
         block: |
           c.JupyterHub.services = [
               {
@@ -117,6 +135,7 @@
     - name: Setup jupyterhub AAD authentication
       blockinfile:
         path: /etc/jupyterhub/jupyterhub_config.py
+        marker: "#{mark} AAD LOGIN (ANSIBLE MANAGED BLOCK)"
         block: |
           import os
           from oauthenticator.azuread import AzureAdOAuthenticator
