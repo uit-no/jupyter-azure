@@ -1,5 +1,5 @@
 # must run miniconda.yml once after reinstall
-- hosts: spoketest
+- hosts: jupyterhosts
   vars:
   roles:
     - evandam.conda

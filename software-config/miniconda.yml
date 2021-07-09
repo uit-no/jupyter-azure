@@ -1,4 +1,4 @@
-- hosts: spoketest
+- hosts: jupyterhosts
   vars:
     # miniconda_mirror: 'file://tmp/'
     # miniconda_ver: '4.8.2'

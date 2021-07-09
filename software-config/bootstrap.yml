@@ -1,5 +1,5 @@
 ---
-- hosts: spoketest
+- hosts: jupyterhosts
   roles:
     - stdazurevm
   tasks:
@@ -11,12 +11,16 @@
     - name: Microsoft rpm signing key
       command:
         cmd: rpm --import http://packages.microsoft.com/keys/microsoft.asc
+    - name: update kernel
+      yum:
+        name: kernel
+        state: latest
+      notify:
+        - Reboot system
     - name: Update system
       yum:
         name: "*"
         state: latest
-      notify:
-        - Reboot system
     - name: set timezone to Europe/Oslo
       timezone:
         name: Europe/Oslo
@@ -32,8 +36,9 @@
         src: mdatp_onboard.json
         mode: 0644
     - name: Install defender
-      yum:
+      dnf:
         name: mdatp
+        state: present
     - name: enable defender service
       systemd:
         name: mdatp

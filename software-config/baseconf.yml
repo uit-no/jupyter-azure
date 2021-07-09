@@ -1,5 +1,4 @@
----
-- hosts: spoketest
+- hosts: jupyterhosts
   vars_files:
     - ./adminvars.yml
   tasks:
