@@ -1,5 +1,5 @@
 # run miniconda.yml once after reinstall before this
-- hosts: spoketest
+- hosts: jupyterhosts
   vars_files:
     - ./adminvars.yml
   roles:
@@ -16,6 +16,7 @@
         name:
           - pyodbc
           - fonts-anaconda
+          - virtualenv
           - plotly
           - scipy
           - matplotlib
@@ -94,8 +95,8 @@
         block: |
           import  urllib
           params = urllib.parse.quote_plus(r'Driver={ODBC Driver 17 for SQL Server};'
-                                          +r'Server=tcp:jupsqltest.database.windows.net,1433;'
-                                          +r'Database=jupsqldb;UID=dbuser;Pwd=b2aKGl*p%bg1;'
+                                          +r'Server={{ azure_sql_server }};'
+                                          +r'Database={{ azure_sql_database }};UID={{ azure_sql_uid }};Pwd={{ azure_sql_password }};'
                                           +r'Encrypt=yes;TrustServerCertificate=yes;Connection Timeout=30;')
           c.JupyterHub.db_url = 'mssql+pyodbc:///?odbc_connect={}'.format(params)
         state: present
