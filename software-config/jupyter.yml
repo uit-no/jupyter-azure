@@ -156,6 +156,8 @@
         content: |
           [Unit]
           Description=Jupyterhub
+          StartLimitInterval=200
+          StartLimitBurst=5
 
           [Service]
           User=jupyterhub
