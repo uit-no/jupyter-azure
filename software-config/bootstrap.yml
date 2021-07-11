@@ -44,6 +44,15 @@
         name: mdatp
         enabled: yes
         state: started
+    - name: install autoupdate
+      yum:
+        name: dnf-automatic
+        state: present
+    - name: enable nightly autoupdate
+      systemd:
+        name: dnf-automatic-install
+        enabled: yes
+        state: started
   handlers:
     - name: Reboot system
       reboot:
