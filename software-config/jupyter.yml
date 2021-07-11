@@ -164,6 +164,7 @@
           EnvironmentFile=/etc/jupyterhub/condaenv
           ExecStart=/usr/local/anaconda/bin/jupyterhub --JupyterHub.spawner_class=sudospawner.SudoSpawner
           WorkingDirectory=/etc/jupyterhub
+          Restart=Always
 
           [Install]
           WantedBy=multi-user.target
