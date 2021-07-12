@@ -158,17 +158,17 @@
           Description=Jupyterhub
           StartLimitInterval=200
           StartLimitBurst=5
+          After=network-online.target
 
           [Service]
           User=jupyterhub
           EnvironmentFile=/etc/jupyterhub/condaenv
           ExecStart=/usr/local/anaconda/bin/jupyterhub --JupyterHub.spawner_class=sudospawner.SudoSpawner
           WorkingDirectory=/etc/jupyterhub
-          Restart=Always
+          Restart=always
 
           [Install]
           WantedBy=multi-user.target
-          After=network-online.target
         mode: 0644
     - name: Establish jupyterhub system service
       systemd:
