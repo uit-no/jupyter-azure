@@ -18,6 +18,8 @@
       notify:
         - Reboot system
     - name: Update system
+      environment:
+        ACCEPT_EULA: "y"
       yum:
         name: "*"
         state: latest
@@ -48,9 +50,17 @@
       yum:
         name: dnf-automatic
         state: present
+    - name: install updates automatically
+      ini_file:
+        path: /etc/dnf/automatic.conf
+        section: commands
+        option: apply_updates
+        value: "yes"
+        state: present
+        mode: 0644
     - name: enable nightly autoupdate
       systemd:
-        name: dnf-automatic-install
+        name: dnf-automatic.timer
         enabled: yes
         state: started
   handlers:
