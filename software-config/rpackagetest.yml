@@ -99,3 +99,10 @@
           - r-nmf
           - r-rjsonio
           - r-biocmanager
+          - r-mosaiccore
+          - r-mosaicdata
+          - r-mosaic
+          - r-mosaiccalc
+          - r-manipulate
+          - r-bh
+          
