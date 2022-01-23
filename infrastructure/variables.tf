@@ -2,7 +2,7 @@
 
 variable "spokename" {
   description = "Assigned spoke name"
-  default     = "t-rstdio"
+  default     = "p-jupytr"
 }
 
 #
@@ -14,11 +14,11 @@ data "azurerm_resource_group" "spokerg" {
 }
 
 data "azurerm_resource_group" "spokenetrg" {
-  name = "t-rstdio-network"
+  name = "p-jupytr-network"
 }
 
 data "azurerm_virtual_network" "spokenet" {
-  name                = "t-rstdio-network-vnet"
+  name                = "p-jupytr-network-vnet"
   resource_group_name = data.azurerm_resource_group.spokenetrg.name
 }
 
@@ -28,26 +28,20 @@ data "azurerm_subnet" "spokefrontnet" {
   resource_group_name  = data.azurerm_resource_group.spokenetrg.name
 }
 
-data "azurerm_subnet" "spokebacknet" {
-  name                 = "BackendSubnet"
-  virtual_network_name = data.azurerm_virtual_network.spokenet.name
-  resource_group_name  = data.azurerm_resource_group.spokenetrg.name
-}
-
 #
 # Case specific stuff below
 # 
 variable "hostname" {
   description = "VM name referenced also in storage-related names."
-  default     = "spoke"
+  default     = "jupyt"
 }
 
 variable "numhosts" {
-  default = 2
+  default = 8
 }
 
 variable "storageaccountname" {
-  default = "spokestor"
+  default = "jupytvmstor"
 }
 
 variable "storage_account_tier" {
@@ -72,22 +66,27 @@ variable "storage_replication_type" {
 
 variable "vm_size" {
   description = "Specifies the size of the virtual machine."
-  default     = "Standard_B2ms"
+  default     = "Standard_B4ms"
 }
 
 variable "image_publisher" {
   description = "name of the publisher of the image (az vm image list)"
-  default     = "OpenLogic"
+  #  default     = "OpenLogic"
+  # default = "cognosys"
+  # Procomputers sponsors rockylinux, lets sponsor them.
+  default = "procomputers"
 }
 
 variable "image_offer" {
   description = "the name of the offer (az vm image list)"
-  default     = "CentOS"
+  # default     = "CentOS"
+  default = "rocky-linux-8-latest"
 }
 
 variable "image_sku" {
   description = "image sku to apply (az vm image list)"
-  default     = "8_1"
+  # default     = "8_1"
+  default = "rocky-linux-8-latest"
 }
 
 variable "image_version" {
@@ -108,8 +107,4 @@ variable "admin_password" {
 
 output "virtual_network_id" {
   value = data.azurerm_virtual_network.spokenet.id
-}
-
-output "subnet_id" {
-  value = data.azurerm_subnet.spokebacknet.id
 }
