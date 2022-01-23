@@ -1,4 +1,4 @@
-- hosts: jupyterhosts
+- hosts: hostlist
   vars_files:
     - ./adminvars.yml
   tasks:
@@ -7,14 +7,16 @@
         name:
           - https://packages.microsoft.com/rhel/8/prod/packages-microsoft-prod.rpm
         state: present
-      when: ansible_distribution == "CentOS"
-    - name: Install basic system tools (CentOs)
+      when: ansible_distribution == "Rocky"
+    - name: Install basic system tools (Rocky)
       yum:
         name:
           - lsof
           - dstat
           - nmap
           - nmap-ncat
+          - realmd
+          - sssd-ad
           - oddjob
           - oddjob-mkhomedir
           - adcli
@@ -32,7 +34,7 @@
           #- texlive-xltxtra
           - git
         state: present
-      when: ansible_distribution == "CentOS"
+      when: ansible_distribution == "Rocky"
     - name: Install MS sql drivers
       environment:
         ACCEPT_EULA: "y"
@@ -41,7 +43,7 @@
           - msodbcsql17
           - mssql-tools
         state: present
-      when: ansible_distribution == "CentOS"
+      when: ansible_distribution == "Rocky"
     - name: Install basic system tools (Ubuntu)
       apt:
         name:
