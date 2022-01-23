@@ -1,4 +1,4 @@
-- hosts: jupyterhosts
+- hosts: hostlist
   vars:
     # miniconda_mirror: 'file://tmp/'
     # miniconda_ver: '4.8.2'

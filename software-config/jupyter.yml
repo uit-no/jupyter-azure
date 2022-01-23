@@ -1,5 +1,5 @@
 # run miniconda.yml once after reinstall before this
-- hosts: jupyterhosts
+- hosts: hostlist
   vars_files:
     - ./adminvars.yml
   roles:
@@ -44,6 +44,8 @@
           - psycopg2
           - k3d
           - scikit-image
+          - boost
+          - nodejs
           #- texlive-core
         channels: conda-forge
         executable: /usr/local/anaconda/bin/mamba
@@ -177,10 +179,10 @@
         enabled: yes
         daemon_reload: yes
         state: started
-    - name: Install k3d labextension (in-browser 3drendering)
-      shell:
-        cmd: /usr/local/anaconda/bin/jupyter labextension install k3d
-        creates: /usr/local/anaconda/share/jupyter/lab/extensions/k3d-*.tgz
+    # - name: Install k3d labextension (in-browser 3drendering)
+    #   shell:
+    #     cmd: /usr/local/anaconda/bin/jupyter labextension install k3d
+    #     creates: /usr/local/anaconda/share/jupyter/lab/extensions/k3d-*.tgz
   handlers:
     - name: Restart jupyterhub
       systemd:

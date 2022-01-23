@@ -1,4 +1,4 @@
-- hosts: jupyterhosts
+- hosts: hostlist
   vars:
   roles:
     - evandam.conda
@@ -105,4 +105,3 @@
           - r-mosaiccalc
           - r-manipulate
           - r-bh
-          

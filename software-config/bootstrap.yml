@@ -1,5 +1,5 @@
 ---
-- hosts: jupyterhosts
+- hosts: hostlist
   roles:
     - stdazurevm
   tasks:
