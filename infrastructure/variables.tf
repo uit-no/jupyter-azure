@@ -72,21 +72,22 @@ variable "vm_size" {
 variable "image_publisher" {
   description = "name of the publisher of the image (az vm image list)"
   #  default     = "OpenLogic"
-  # default = "cognosys"
+  default = "erockyenterprisesoftwarefoundationinc1653071250513"
   # Procomputers sponsors rockylinux, lets sponsor them.
-  default = "procomputers"
+  # default = "procomputers"
 }
 
 variable "image_offer" {
   description = "the name of the offer (az vm image list)"
   # default     = "CentOS"
-  default = "rocky-linux-8-latest"
+  # default = "rocky-linux-8-latest"
+  default = "rockylinux"
 }
 
 variable "image_sku" {
   description = "image sku to apply (az vm image list)"
   # default     = "8_1"
-  default = "rocky-linux-8-latest"
+  default = "free"
 }
 
 variable "image_version" {
