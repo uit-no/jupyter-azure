@@ -14,11 +14,11 @@ data "azurerm_resource_group" "spokerg" {
 }
 
 data "azurerm_resource_group" "spokenetrg" {
-  name = "p-jupytr-network"
+  name = "${var.spokename}-network"
 }
 
 data "azurerm_virtual_network" "spokenet" {
-  name                = "p-jupytr-network-vnet"
+  name                = "${data.azurerm_resource_group.spokenetrg.name}-vnet"
   resource_group_name = data.azurerm_resource_group.spokenetrg.name
 }
 

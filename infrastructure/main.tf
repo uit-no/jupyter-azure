@@ -34,11 +34,11 @@ resource "azurerm_network_interface" "nic" {
   }
 }
 
-resource "azurerm_marketplace_agreement" "rockylinux" {
-  publisher = var.image_publisher
-  offer     = var.image_offer
-  plan      = "latest"
-}
+# resource "azurerm_marketplace_agreement" "rockylinux" {
+#   publisher = var.image_publisher
+#   offer     = var.image_offer
+#   plan      = "latest"
+# }
 
 resource "azurerm_linux_virtual_machine" "vm" {
   name                            = "${var.hostname}${format("%02d", count.index)}"
@@ -77,6 +77,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
     name                 = "${var.hostname}sysdisk${count.index}"
     storage_account_type = "Standard_LRS"
     caching              = "ReadWrite"
+    disk_size_gb          = 16
   }
 
   boot_diagnostics {
