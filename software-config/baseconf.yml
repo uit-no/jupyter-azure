@@ -1,11 +1,17 @@
 - hosts: hostlist
   vars_files:
     - ./adminvars.yml
+  roles:
+    - linux-system-roles.crypto_policies
+  vars:
+    crypto_policies_policy: "DEFAULT:AD-SUPPORT" # RHEL sets too strict crypto demands per default so AD lookups fails.
+    crypto_policies_reload: true
+
   tasks:
     - name: Enable MS repo
       yum:
         name:
-          - https://packages.microsoft.com/rhel/8/prod/packages-microsoft-prod.rpm
+          - https://packages.microsoft.com/rhel/8/prod/Packages/p/packages-microsoft-prod.rpm
         state: present
       when: ansible_distribution == "Rocky"
     - name: Install basic system tools (Rocky)
@@ -77,6 +83,24 @@
         path: /etc/sssd/sssd.conf
         option: fallback_homedir
         value: /azhome/%u@%d
+        mode: 0600
+      notify:
+        - Restart sssd
+    - name: Limit sssd group lookup
+      ini_file:
+        section: domain/ad.uit.no
+        path: /etc/sssd/sssd.conf
+        option: ldap_use_tokengroups 
+        value: false
+        mode: 0600
+      notify:
+        - Restart sssd
+    - name: Limit sssd ad group lookup to domain users
+      ini_file:
+        section: domain/ad.uit.no
+        path: /etc/sssd/sssd.conf
+        option: ldap_group_search_base
+        value: DC=ad,DC=uit,DC=no?sub?(cn=domain users)
         mode: 0600
       notify:
         - Restart sssd
