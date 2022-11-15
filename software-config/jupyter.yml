@@ -46,6 +46,8 @@
           - scikit-image
           - boost
           - nodejs
+          - astropy
+          - quarto
           #- texlive-core
         channels: conda-forge
         executable: /usr/local/anaconda/bin/mamba
@@ -102,7 +104,7 @@
                                           +r'Database={{ azure_sql_database }};UID={{ azure_sql_uid }};Pwd={{ azure_sql_password }};'
                                           +r'Encrypt=yes;TrustServerCertificate=yes;Connection Timeout=30;')
           c.JupyterHub.db_url = 'mssql+pyodbc:///?odbc_connect={}'.format(params)
-        state: present
+        state: absent
       no_log: True
       notify:
         - Restart jupyterhub
@@ -124,6 +126,7 @@
         mode: 0640
     - name: enable idle server culler
       blockinfile:
+        state: present
         path: /etc/jupyterhub/jupyterhub_config.py
         marker: "#{mark} CULL IDLE SETUP (ANSIBLE MANAGED BLOCK)"
         block: |
