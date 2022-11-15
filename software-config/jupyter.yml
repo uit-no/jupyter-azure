@@ -1,5 +1,5 @@
 # run miniconda.yml once after reinstall before this
-- hosts: spoketest
+- hosts: hostlist
   vars_files:
     - ./adminvars.yml
   roles:
@@ -16,6 +16,7 @@
         name:
           - pyodbc
           - fonts-anaconda
+          - virtualenv
           - plotly
           - scipy
           - matplotlib
@@ -42,6 +43,11 @@
           - pandoc
           - psycopg2
           - k3d
+          - scikit-image
+          - boost
+          - nodejs
+          - astropy
+          - quarto
           #- texlive-core
         channels: conda-forge
         executable: /usr/local/anaconda/bin/mamba
@@ -94,11 +100,11 @@
         block: |
           import  urllib
           params = urllib.parse.quote_plus(r'Driver={ODBC Driver 17 for SQL Server};'
-                                          +r'Server=tcp:jupsqltest.database.windows.net,1433;'
-                                          +r'Database=jupsqldb;UID=dbuser;Pwd=b2aKGl*p%bg1;'
+                                          +r'Server={{ azure_sql_server }};'
+                                          +r'Database={{ azure_sql_database }};UID={{ azure_sql_uid }};Pwd={{ azure_sql_password }};'
                                           +r'Encrypt=yes;TrustServerCertificate=yes;Connection Timeout=30;')
           c.JupyterHub.db_url = 'mssql+pyodbc:///?odbc_connect={}'.format(params)
-        state: present
+        state: absent
       no_log: True
       notify:
         - Restart jupyterhub
@@ -120,6 +126,7 @@
         mode: 0640
     - name: enable idle server culler
       blockinfile:
+        state: present
         path: /etc/jupyterhub/jupyterhub_config.py
         marker: "#{mark} CULL IDLE SETUP (ANSIBLE MANAGED BLOCK)"
         block: |
@@ -155,16 +162,19 @@
         content: |
           [Unit]
           Description=Jupyterhub
+          StartLimitInterval=200
+          StartLimitBurst=5
+          After=network-online.target
 
           [Service]
           User=jupyterhub
           EnvironmentFile=/etc/jupyterhub/condaenv
           ExecStart=/usr/local/anaconda/bin/jupyterhub --JupyterHub.spawner_class=sudospawner.SudoSpawner
           WorkingDirectory=/etc/jupyterhub
+          Restart=always
 
           [Install]
           WantedBy=multi-user.target
-          After=network-online.target
         mode: 0644
     - name: Establish jupyterhub system service
       systemd:
@@ -172,6 +182,10 @@
         enabled: yes
         daemon_reload: yes
         state: started
+    # - name: Install k3d labextension (in-browser 3drendering)
+    #   shell:
+    #     cmd: /usr/local/anaconda/bin/jupyter labextension install k3d
+    #     creates: /usr/local/anaconda/share/jupyter/lab/extensions/k3d-*.tgz
   handlers:
     - name: Restart jupyterhub
       systemd:

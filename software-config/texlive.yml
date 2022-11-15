@@ -1,5 +1,5 @@
 ---
-- hosts: spoketest
+- hosts: hostlist
   vars:
     texlive_mirror: https://ftp.snt.utwente.nl/pub/software/tex/systems/texlive/tlnet/
     scheme: small

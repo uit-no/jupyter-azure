@@ -1,5 +1,5 @@
 # must run miniconda.yml once after reinstall
-- hosts: spoketest
+- hosts: jupyterhosts
   vars:
   roles:
     - evandam.conda
@@ -26,7 +26,7 @@
           /usr/local/anaconda/envs/r3.6/bin/R -e "IRkernel::installspec(name = 'ir36', displayname = 'R 3.6', user = FALSE, sys_prefix = TRUE)"
         creates: /usr/local/anaconda/share/jupyter/kernels/ir36
       environment:
-        PATH:  /usr/local/anaconda/bin/:{{ ansible_env.PATH }}
+        PATH: /usr/local/anaconda/bin/:{{ ansible_env.PATH }}
       # - name: rstudio-server
     #   yum:
     #     name:

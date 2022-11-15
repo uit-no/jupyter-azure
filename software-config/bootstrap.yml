@@ -1,5 +1,5 @@
 ---
-- hosts: spoketest
+- hosts: hostlist
   roles:
     - stdazurevm
   tasks:
@@ -11,12 +11,18 @@
     - name: Microsoft rpm signing key
       command:
         cmd: rpm --import http://packages.microsoft.com/keys/microsoft.asc
-    - name: Update system
+    - name: update kernel
       yum:
-        name: "*"
+        name: kernel
         state: latest
       notify:
         - Reboot system
+    - name: Update system
+      environment:
+        ACCEPT_EULA: "y"
+      yum:
+        name: "*"
+        state: latest
     - name: set timezone to Europe/Oslo
       timezone:
         name: Europe/Oslo
@@ -32,11 +38,29 @@
         src: mdatp_onboard.json
         mode: 0644
     - name: Install defender
-      yum:
+      dnf:
         name: mdatp
+        state: present
     - name: enable defender service
       systemd:
         name: mdatp
+        enabled: yes
+        state: started
+    - name: install autoupdate
+      yum:
+        name: dnf-automatic
+        state: present
+    - name: install updates automatically
+      ini_file:
+        path: /etc/dnf/automatic.conf
+        section: commands
+        option: apply_updates
+        value: "yes"
+        state: present
+        mode: 0644
+    - name: enable nightly autoupdate
+      systemd:
+        name: dnf-automatic.timer
         enabled: yes
         state: started
   handlers:

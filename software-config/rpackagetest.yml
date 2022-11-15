@@ -1,4 +1,4 @@
-- hosts: spoketest
+- hosts: hostlist
   vars:
   roles:
     - evandam.conda
@@ -99,3 +99,9 @@
           - r-nmf
           - r-rjsonio
           - r-biocmanager
+          - r-mosaiccore
+          - r-mosaicdata
+          - r-mosaic
+          - r-mosaiccalc
+          - r-manipulate
+          - r-bh
