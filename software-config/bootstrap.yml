@@ -2,6 +2,10 @@
 - hosts: hostlist
   roles:
     - stdazurevm
+    - linux-system-roles.crypto_policies
+  vars:
+    crypto_policies_policy: "DEFAULT:AD-SUPPORT" # RHEL sets too strict crypto demands per default so AD lookups fails.
+    crypto_policies_reload: true
   tasks:
     - name: Microsoft yum repo
       yum_repository:
