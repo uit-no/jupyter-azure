@@ -49,6 +49,9 @@
           - nodejs
           - astropy
           - quarto
+          - sagemath-bliss
+          - sagemath-sirocco
+          - manim
           #- texlive-core
         channels: conda-forge
         executable: /usr/local/anaconda/bin/mamba
