@@ -27,6 +27,7 @@
           - jupyterlab
           - jupyterhub
           - sudospawner
+          - jupyterhub-systemdspawner
           - jupyterhub-idle-culler
           - oauthenticator
           - jupyterlab-git
@@ -108,6 +109,15 @@
       no_log: True
       notify:
         - Restart jupyterhub
+    - name: Set max memory limit per user
+      blockinfile: 
+        path: /etc/jupyterhub/jupyterhub_config.py
+        marker: "#{mark} MEMORY LIMIT (ANSIBLE MANAGED BLOCK)"
+        block: |
+          c.SystemdSpawner.mem_limit = '4G'
+        state: present
+      notify:
+        - Restart jupyterhub
     - name: set up environment for jupyterhub systemd service
       copy:
         dest: /etc/jupyterhub/condaenv
@@ -167,9 +177,9 @@
           After=network-online.target
 
           [Service]
-          User=jupyterhub
+          User=root
           EnvironmentFile=/etc/jupyterhub/condaenv
-          ExecStart=/usr/local/anaconda/bin/jupyterhub --JupyterHub.spawner_class=sudospawner.SudoSpawner
+          ExecStart=/usr/local/anaconda/bin/jupyterhub --JupyterHub.spawner_class=systemdspawner.SystemdSpawner
           WorkingDirectory=/etc/jupyterhub
           Restart=always
 
