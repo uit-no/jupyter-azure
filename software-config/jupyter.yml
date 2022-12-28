@@ -27,10 +27,12 @@
           - jupyterlab
           - jupyterhub
           - sudospawner
+          - jupyterhub-systemdspawner
           - jupyterhub-idle-culler
           - oauthenticator
           - jupyterlab-git
           - jupyterlab_widgets
+          - jupyter-resource-usage
           - hdf5
           - netcdf4
           - xarray
@@ -48,6 +50,9 @@
           - nodejs
           - astropy
           - quarto
+          - sagemath-bliss
+          - sagemath-sirocco
+          - manim
           #- texlive-core
         channels: conda-forge
         executable: /usr/local/anaconda/bin/mamba
@@ -106,6 +111,21 @@
           c.JupyterHub.db_url = 'mssql+pyodbc:///?odbc_connect={}'.format(params)
         state: absent
       no_log: True
+      notify:
+        - Restart jupyterhub
+    - name: Set max memory limit per user
+      blockinfile: 
+        path: /etc/jupyterhub/jupyterhub_config.py
+        marker: "#{mark} MEMORY LIMIT (ANSIBLE MANAGED BLOCK)"
+        block: |
+          c.SystemdSpawner.mem_limit = '4G'
+        state: present
+      notify:
+        - Restart jupyterhub
+    - name: Set OOM policy for jupyter to continue
+      lineinfile:
+        path: /etc/jupyterhub/jupyterhub_config.py
+        line: "c.SystemdSpawner.unit_extra_properties = {'OOMPolicy' : 'continue'}"
       notify:
         - Restart jupyterhub
     - name: set up environment for jupyterhub systemd service
@@ -167,9 +187,9 @@
           After=network-online.target
 
           [Service]
-          User=jupyterhub
+          User=root
           EnvironmentFile=/etc/jupyterhub/condaenv
-          ExecStart=/usr/local/anaconda/bin/jupyterhub --JupyterHub.spawner_class=sudospawner.SudoSpawner
+          ExecStart=/usr/local/anaconda/bin/jupyterhub --JupyterHub.spawner_class=systemdspawner.SystemdSpawner
           WorkingDirectory=/etc/jupyterhub
           Restart=always
 
