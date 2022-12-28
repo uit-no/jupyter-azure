@@ -77,7 +77,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
     name                 = "${var.hostname}sysdisk${count.index}"
     storage_account_type = "Standard_LRS"
     caching              = "ReadWrite"
-    disk_size_gb          = 16
+    disk_size_gb          = 32
   }
 
   boot_diagnostics {

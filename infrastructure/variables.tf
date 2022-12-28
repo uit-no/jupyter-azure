@@ -81,13 +81,13 @@ variable "image_offer" {
   description = "the name of the offer (az vm image list)"
   # default     = "CentOS"
   # default = "rocky-linux-8-latest"
-  default = "rockylinux"
+  default = "rockylinux-9"
 }
 
 variable "image_sku" {
   description = "image sku to apply (az vm image list)"
   # default     = "8_1"
-  default = "free"
+  default = "rockylinux-9"
 }
 
 variable "image_version" {
