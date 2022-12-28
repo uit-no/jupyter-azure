@@ -32,6 +32,7 @@
           - oauthenticator
           - jupyterlab-git
           - jupyterlab_widgets
+          - jupyter-resource-usage
           - hdf5
           - netcdf4
           - xarray
@@ -119,6 +120,12 @@
         block: |
           c.SystemdSpawner.mem_limit = '4G'
         state: present
+      notify:
+        - Restart jupyterhub
+    - name: Set OOM policy for jupyter to continue
+      lineinfile:
+        path: /etc/jupyterhub/jupyterhub_config.py
+        line: "c.SystemdSpawner.unit_extra_properties = {'OOMPolicy' : 'continue'}"
       notify:
         - Restart jupyterhub
     - name: set up environment for jupyterhub systemd service
