@@ -39,6 +39,7 @@
           #- texlive-xetex
           #- texlive-xltxtra
           - git
+          - libcgroup-tools
         state: present
       when: ansible_distribution == "Rocky"
     - name: Install MS sql drivers
@@ -151,6 +152,20 @@
         enabled: yes
         daemon_reload: yes
         state: started
+    - name: Set memory limit in cgconfig.conf
+      copy:
+        dest: /etc/cgconfig.conf
+        content: |
+          group memlimit {
+              memory {
+                memory.limit_in_bytes = 8589934592;
+              }
+          }
+    - name: Assign memory limit to all users in cgrules.conf
+      copy:
+        dest: /etc/cgrules.conf
+        content: |
+          *   memory   memlimit/
   handlers:
     - name: Restart sssd
       ansible.builtin.systemd:
