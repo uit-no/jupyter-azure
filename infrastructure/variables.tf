@@ -33,7 +33,7 @@ data "azurerm_subnet" "spokefrontnet" {
 # 
 variable "hostname" {
   description = "VM name referenced also in storage-related names."
-  default     = "jupyt"
+  default     = "jup"
 }
 
 variable "numhosts" {
@@ -55,7 +55,7 @@ variable "storage_replication_type" {
 }
 
 # variable "custom_image_resource_group_name" {
-#   description = "The name of the Resource Group in which the Custom Image exists."
+#   description = "The name of the Resource Group in which the Custom Image exists."device
 #   default = "testlab201901"
 # }
 
