@@ -2,12 +2,25 @@
 - hosts: hostlist
   roles:
     - stdazurevm
+    - linux-system-roles.crypto_policies
+  vars:
+    crypto_policies_policy: "DEFAULT:AD-SUPPORT-LEGACY" # RHEL sets too strict crypto demands per default so AD lookups fails.
+    crypto_policies_reload: true
   tasks:
+    - name: Set selinux policy
+      ansible.posix.selinux:
+        policy: targeted
+        state: enforcing
+      notify:
+        - Reboot system
+    - name: Allow mdatp daemon rights in selinux
+      command:
+        cmd: setsebool audisp_mdatp_from_auditd_t true
     - name: Microsoft yum repo
       yum_repository:
         name: microsoft
         description: Microsoft rpm repo
-        baseurl: https://packages.microsoft.com/rhel/8/prod/
+        baseurl: https://packages.microsoft.com/rhel/9/prod/
     - name: Microsoft rpm signing key
       command:
         cmd: rpm --import http://packages.microsoft.com/keys/microsoft.asc
