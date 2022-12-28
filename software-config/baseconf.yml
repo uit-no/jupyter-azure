@@ -1,12 +1,7 @@
+---
 - hosts: hostlist
   vars_files:
     - ./adminvars.yml
-  roles:
-    - linux-system-roles.crypto_policies
-  vars:
-    crypto_policies_policy: "DEFAULT:AD-SUPPORT" # RHEL sets too strict crypto demands per default so AD lookups fails.
-    crypto_policies_reload: true
-
   tasks:
     - name: Enable MS repo
       yum:
@@ -102,6 +97,7 @@
         option: ldap_group_search_base
         value: DC=ad,DC=uit,DC=no?sub?(cn=domain users)
         mode: 0600
+        state: absent
       notify:
         - Restart sssd
     - name: Set kerberos ticket timeout
