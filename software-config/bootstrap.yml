@@ -13,9 +13,6 @@
         state: enforcing
       notify:
         - Reboot system
-    - name: Allow mdatp daemon rights in selinux
-      command:
-        cmd: setsebool audisp_mdatp_from_auditd_t true
     - name: Microsoft yum repo
       yum_repository:
         name: microsoft
@@ -54,6 +51,9 @@
       dnf:
         name: mdatp
         state: present
+    - name: Allow mdatp daemon rights in selinux
+      command:
+        cmd: setsebool audisp_mdatp_from_auditd_t true
     - name: enable defender service
       systemd:
         name: mdatp
