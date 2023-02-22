@@ -16,4 +16,4 @@
       shell:
         cmd: |
           source /etc/profile.d/texlive.sh
-          tlmgr install tcolorbox environ ucs adjustbox collectbox titling enumitem times rsfs
+          tlmgr install tcolorbox environ ucs adjustbox collectbox titling enumitem times rsfs pdfcol framed tikzfill
