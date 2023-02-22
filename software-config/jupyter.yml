@@ -53,6 +53,8 @@
           - sagemath-bliss
           - sagemath-sirocco
           - manim
+          - orbit-ml
+          - pystan
           #- texlive-core
         channels: conda-forge
         executable: /usr/local/anaconda/bin/mamba
@@ -206,6 +208,11 @@
     #   shell:
     #     cmd: /usr/local/anaconda/bin/jupyter labextension install k3d
     #     creates: /usr/local/anaconda/share/jupyter/lab/extensions/k3d-*.tgz
+    - name: Initialization of standard user conda enviroment
+      copy:
+        dest: /etc/profile.d/conda.sh
+        src: conda.sh
+        mode: 0644
   handlers:
     - name: Restart jupyterhub
       systemd:
