@@ -13,9 +13,6 @@
         state: enforcing
       notify:
         - Reboot system
-    - name: Allow mdatp daemon rights in selinux
-      command:
-        cmd: setsebool audisp_mdatp_from_auditd_t true
     - name: Microsoft yum repo
       yum_repository:
         name: microsoft
@@ -54,11 +51,19 @@
       dnf:
         name: mdatp
         state: present
+    - name: Allow mdatp daemon rights in selinux
+      command:
+        cmd: setsebool audisp_mdatp_from_auditd_t true
     - name: enable defender service
       systemd:
         name: mdatp
         enabled: yes
         state: started
+    - name: Hack redhat-release to get better defender info
+      ansible.builtin.replace:
+        path: /etc/redhat-release
+        regexp: 'Rocky'
+        replace: 'RedHat Enterprise'
     - name: install autoupdate
       yum:
         name: dnf-automatic
