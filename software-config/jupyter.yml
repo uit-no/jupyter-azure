@@ -11,19 +11,12 @@
           - mamba
         channels: conda-forge
         executable: /usr/local/anaconda/bin/conda
-    - name: install scientific libraries
+    - name: install jupyterlab etc.
       conda:
         name:
           - pyodbc
           - fonts-anaconda
           - virtualenv
-          - plotly
-          - scipy
-          - matplotlib
-          - bokeh
-          - seaborn
-          - ipympl
-          - mpld3
           - jupyterlab
           - jupyterhub
           - sudospawner
@@ -33,6 +26,18 @@
           - jupyterlab-git
           - jupyterlab_widgets
           - jupyter-resource-usage
+        channels: conda-forge
+        executable: /usr/local/anaconda/bin/mamba
+    - name: install scientific libraries
+      conda:
+        name:
+          - plotly
+          - scipy
+          - matplotlib
+          - bokeh
+          - seaborn
+          - ipympl
+          - mpld3
           - hdf5
           - netcdf4
           - xarray
@@ -175,6 +180,8 @@
           c.AzureAdOAuthenticator.client_id = '{{ aad_client_id }}'
           c.AzureAdOAuthenticator.client_secret = '{{ aad_client_secret }}'
           c.AzureAdOAuthenticator.username_claim="preferred_username"
+          c.AzureAdOAuthenticator.allow_all = True
+          c.AzureAdOAuthenticator.login_service = "your UiT user ID."
       notify:
         - Restart jupyterhub
 
