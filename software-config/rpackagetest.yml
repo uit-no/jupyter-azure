@@ -106,4 +106,6 @@
           - r-manipulate
           - r-bh
           - r-janitor
+          - r-marginaleffects
+          
 

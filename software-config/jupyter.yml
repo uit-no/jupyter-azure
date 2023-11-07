@@ -60,6 +60,9 @@
           - manim
           - orbit-ml
           - pystan
+          - altair
+          - vega_datasets
+          - torchgeo
           #- texlive-core
         channels: conda-forge
         executable: /usr/local/anaconda/bin/mamba
