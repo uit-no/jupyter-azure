@@ -1,0 +1,12 @@
+- hosts: hostlist
+  roles:
+    - evandam.conda
+  tasks:
+    - name: install xeus-sql and friends 
+      conda:
+        name:
+          - xeus-sql
+          - soci-sqlite
+        state: present
+        channels: conda-forge
+        executable: /usr/local/anaconda/bin/mamba
