@@ -35,7 +35,7 @@
           #- texlive-xltxtra
           - git
         state: present
-      when: ansible_distribution == "Rocky"
+      when: ansible_facts['os_family']== "RedHat"
     - name: Install MS sql drivers
       environment:
         ACCEPT_EULA: "y"
@@ -44,7 +44,7 @@
           - msodbcsql17
           - mssql-tools
         state: present
-      when: ansible_distribution == "Rocky"
+      when: ansible_facts['os_family']== "RedHat"
     - name: Install basic system tools (Ubuntu)
       apt:
         name:
