@@ -1,16 +1,17 @@
 ---
-- hosts: hostlist
+- name: Basic system config and tools
+  hosts: hostlist
   vars_files:
     - ./adminvars.yml
   tasks:
     - name: Enable MS repo
-      yum:
+      ansible.builtin.yum:
         name:
           - https://packages.microsoft.com/rhel/8/prod/Packages/p/packages-microsoft-prod.rpm
         state: present
       when: ansible_distribution == "Rocky"
     - name: Install basic system tools (Rocky)
-      yum:
+      ansible.builtin.yum:
         name:
           - lsof
           - dstat
@@ -31,22 +32,22 @@
           - perl-Digest-MD5
           # - urw-base35-fonts-20170801-10
           # - urw-base35-standard-symbols-ps-fonts-20170801-10
-          #- texlive-xetex
-          #- texlive-xltxtra
+          # - texlive-xetex
+          # - texlive-xltxtra
           - git
         state: present
-      when: ansible_facts['os_family']== "RedHat"
+      when: ansible_facts['os_family'] == "RedHat"
     - name: Install MS sql drivers
       environment:
         ACCEPT_EULA: "y"
-      yum:
+      ansible.builtin.yum:
         name:
           - msodbcsql17
           - mssql-tools
         state: present
-      when: ansible_facts['os_family']== "RedHat"
+      when: ansible_facts['os_family'] == "RedHat"
     - name: Install basic system tools (Ubuntu)
-      apt:
+      ansible.builtin.apt:
         name:
           - samba-client
           - realmd
@@ -67,85 +68,85 @@
           - pandoc
       when: ansible_distribution == "Ubuntu"
     - name: Register with domain
-      command:
+      ansible.builtin.command:
         cmd: realm join -U '{{ admin_user }}'  '{{ ad_domain }}'
         stdin: "{{ password }}"
         creates: /etc/krb5.keytab
-      no_log: True # Do not expose password in logs!!!!
+      no_log: true # Do not expose password in logs!!!!
     - name: Set adhome root dir
-      ini_file:
+      community.general.ini_file:
         section: domain/ad.uit.no
         path: /etc/sssd/sssd.conf
         option: fallback_homedir
         value: /azhome/%u@%d
-        mode: 0600
+        mode: "0600"
       notify:
         - Restart sssd
     - name: Limit sssd group lookup
-      ini_file:
+      community.general.ini_file:
         section: domain/ad.uit.no
         path: /etc/sssd/sssd.conf
-        option: ldap_use_tokengroups 
+        option: ldap_use_tokengroups
         value: false
-        mode: 0600
+        mode: "0600"
       notify:
         - Restart sssd
     - name: Limit sssd ad group lookup to domain users
-      ini_file:
+      community.general.ini_file:
         section: domain/ad.uit.no
         path: /etc/sssd/sssd.conf
         option: ldap_group_search_base
         value: DC=ad,DC=uit,DC=no?sub?(cn=domain users)
-        mode: 0600
+        mode: "0600"
         state: absent
       notify:
         - Restart sssd
     - name: Set kerberos ticket timeout
-      ini_file:
+      community.general.ini_file:
         section: domain/ad.uit.no
         path: /etc/sssd/sssd.conf
         option: krb5_renewable_lifetime
         value: 7d
-        mode: 0600
+        mode: "0600"
       notify:
         - Restart sssd
     - name: Set kerberos ticket renew interval
-      ini_file:
+      community.general.ini_file:
         section: domain/ad.uit.no
         path: /etc/sssd/sssd.conf
         option: krb5_renew_interval
         value: 500
-        mode: 0600
+        mode: "0600"
       notify:
         - Restart sssd
     - name: Create autofs config for home dirs
-      copy:
+      ansible.builtin.copy:
         dest: /etc/auto.master.d/azhome.autofs
         content: |
           /azhome program /etc/auto.adhome --timeout=3600
-        mode: 0644
+        mode: "0644"
       notify:
         - Restart autofs
     - name: Create ad mount command
-      copy:
+      ansible.builtin.copy:
         dest: /etc/auto.adhome
         src: auto.adhome
         mode: +rx
     - name: Create home share configuration
-      copy:
+      ansible.builtin.copy:
         dest: /etc/homeshares
         src: homeshares
-        mode: 0644
+        mode: "0644"
     - name: Mount credentials
-      copy:
+      ansible.builtin.copy:
         dest: /etc/smbhome.conf
         src: smbhome.conf
-        mode: 0600
-    - name: start autofs system service
-      systemd:
+        mode: "0600"
+    - name: Start autofs system service
+      ansible.builtin.systemd:
         name: autofs
-        enabled: yes
-        daemon_reload: yes
+        enabled: true
+        daemon_reload: true
         state: started
   handlers:
     - name: Restart sssd

@@ -1,5 +1,6 @@
 ---
-- hosts: hostlist
+- name: Bootstrap system setup
+  hosts: hostlist
   roles:
     - stdazurevm
     - linux-system-roles.crypto_policies
@@ -14,15 +15,15 @@
       notify:
         - Reboot system
     - name: Microsoft yum repo
-      yum_repository:
+      ansible.builtin.yum_repository:
         name: microsoft
         description: Microsoft rpm repo
         baseurl: https://packages.microsoft.com/rhel/9/prod/
     - name: Microsoft rpm signing key
-      command:
+      ansible.builtin.command:
         cmd: rpm --import http://packages.microsoft.com/keys/microsoft.asc
-    - name: update kernel
-      yum:
+    - name: Update kernel
+      ansible.builtin.yum:
         name: kernel
         state: latest
       notify:
@@ -30,57 +31,57 @@
     - name: Update system
       environment:
         ACCEPT_EULA: "y"
-      yum:
+      ansible.builtin.yum:
         name: "*"
         state: latest
-    - name: set timezone to Europe/Oslo
-      timezone:
+    - name: Set timezone to Europe/Oslo
+      community.general.timezone:
         name: Europe/Oslo
-    - name: set hostname in hosts
-      lineinfile:
+    - name: Set hostname in hosts
+      ansible.builtin.lineinfile:
         path: /etc/hosts
         regexp: '^(127\.0\.0\.1) +(localhost.*)'
         line: \g<1> {{ ansible_hostname }} \g<2>
-        backrefs: yes
-    - name: upload defender onboarding file
-      copy:
+        backrefs: true
+    - name: Upload defender onboarding file
+      ansible.builtin.copy:
         dest: /etc/opt/microsoft/mdatp/
         src: mdatp_onboard.json
-        mode: 0644
+        mode: "0644"
     - name: Install defender
-      dnf:
+      ansible.builtin.dnf:
         name: mdatp
         state: present
     - name: Allow mdatp daemon rights in selinux
-      command:
+      ansible.builtin.command:
         cmd: setsebool audisp_mdatp_from_auditd_t true
-    - name: enable defender service
-      systemd:
+    - name: Enable defender service
+      ansible.builtin.systemd:
         name: mdatp
-        enabled: yes
+        enabled: true
         state: started
     - name: Hack redhat-release to get better defender info
       ansible.builtin.replace:
         path: /etc/redhat-release
         regexp: 'Rocky'
         replace: 'RedHat Enterprise'
-    - name: install autoupdate
-      yum:
+    - name: Install autoupdate
+      ansible.builtin.yum:
         name: dnf-automatic
         state: present
-    - name: install updates automatically
-      ini_file:
+    - name: Install updates automatically
+      community.general.ini_file:
         path: /etc/dnf/automatic.conf
         section: commands
         option: apply_updates
         value: "yes"
         state: present
-        mode: 0644
-    - name: enable nightly autoupdate
-      systemd:
+        mode: "0644"
+    - name: Enable nightly autoupdate
+      ansible.builtin.systemd:
         name: dnf-automatic.timer
-        enabled: yes
+        enabled: true
         state: started
   handlers:
     - name: Reboot system
-      reboot:
+      ansible.builtin.reboot:

@@ -1,17 +1,18 @@
 # run miniconda.yml once after reinstall before this
-- hosts: hostlist
+- name: Install jupyter enviroment
+  hosts: hostlist
   vars_files:
     - ./adminvars.yml
   roles:
     - evandam.conda
   tasks:
-    - name: install mamba (a faster conda)
+    - name: Install mamba (a faster conda)
       conda:
         name:
           - mamba
         channels: conda-forge
         executable: /usr/local/anaconda/bin/conda
-    - name: install jupyterlab etc.
+    - name: Install jupyterlab etc.
       conda:
         name:
           - pyodbc
@@ -28,7 +29,7 @@
           - jupyter-resource-usage
         channels: conda-forge
         executable: /usr/local/anaconda/bin/mamba
-    - name: install scientific libraries
+    - name: Install scientific libraries
       conda:
         name:
           - plotly
@@ -63,68 +64,68 @@
           - altair
           - vega_datasets
           - torchgeo
-          #- texlive-core
+          # - texlive-core
         channels: conda-forge
         executable: /usr/local/anaconda/bin/mamba
-    - name: create jupyterhub service user
-      user:
+    - name: Create jupyterhub service user
+      ansible.builtin.user:
         name: jupyterhub
         comment: Jupytehub service user
-        local: yes
-        system: yes
+        local: true
+        system: true
         password: !
-        create_home: no
+        create_home: false
         shell: /bin/false
     - name: Create jupyterhub config catalog
-      file:
-        name: /etc/jupyterhub
+      ansible.builtin.file:
+        path: /etc/jupyterhub
         state: directory
         owner: jupyterhub
         group: jupyterhub
-        mode: 0755
+        mode: "0755"
     - name: Create jupyterhub basic config
-      shell:
+      ansible.builtin.shell:
         cmd: |
           source /usr/local/anaconda/bin/activate
           /usr/local/anaconda/bin/jupyterhub --generate-config -f /etc/jupyterhub/jupyterhub_config.py
         creates: /etc/jupyterhub/jupyterhub_config.py
     - name: Restrict access to jupyterhub config
-      file:
+      ansible.builtin.file:
         name: /etc/jupyterhub/jupyterhub_config.py
         owner: jupyterhub
         group: jupyterhub
-        mode: 0600
+        mode: "0600"
     - name: Make jupyterlab the default interface
-      lineinfile:
+      ansible.builtin.lineinfile:
         path: /etc/jupyterhub/jupyterhub_config.py
         line: c.Spawner.default_url = '/lab'
       notify:
         - Restart jupyterhub
-    - name: Jupyterhub backend db connection (postgres)
-      lineinfile:
-        path: /etc/jupyterhub/jupyterhub_config.py
-        line: c.JupyterHub.db_url  = "postgresql://jupdb@jupdb:{{ dbpassword }}@jupdb.postgres.database.azure.com:5432/jupyter?sslmode=require"
-        state: absent
-      no_log: True
-      notify:
-        - Restart jupyterhub
-    - name: Jupyterhub backend db connection (Azure SQL)
-      blockinfile:
-        path: /etc/jupyterhub/jupyterhub_config.py
-        marker: "#{mark} DB BACKEND SETUP (ANSIBLE MANAGED BLOCK)"
-        block: |
-          import  urllib
-          params = urllib.parse.quote_plus(r'Driver={ODBC Driver 17 for SQL Server};'
-                                          +r'Server={{ azure_sql_server }};'
-                                          +r'Database={{ azure_sql_database }};UID={{ azure_sql_uid }};Pwd={{ azure_sql_password }};'
-                                          +r'Encrypt=yes;TrustServerCertificate=yes;Connection Timeout=30;')
-          c.JupyterHub.db_url = 'mssql+pyodbc:///?odbc_connect={}'.format(params)
-        state: absent
-      no_log: True
-      notify:
-        - Restart jupyterhub
+    # # - name: Jupyterhub backend db connection (postgres)
+    # #   lineinfile:
+    # #     path: /etc/jupyterhub/jupyterhub_config.py
+    # #     line: c.JupyterHub.db_url  = "postgresql://jupdb@jupdb:{{ dbpassword }}@jupdb.postgres.database.azure.com:5432/jupyter?sslmode=require"
+    # #     state: absent
+    # #   no_log: True
+    # #   notify:
+    # #     - Restart jupyterhub
+    # - name: Jupyterhub backend db connection (Azure SQL)
+    #   blockinfile:
+    #     path: /etc/jupyterhub/jupyterhub_config.py
+    #     marker: "#{mark} DB BACKEND SETUP (ANSIBLE MANAGED BLOCK)"
+    #     block: |
+    #       import  urllib
+    #       params = urllib.parse.quote_plus(r'Driver={ODBC Driver 17 for SQL Server};'
+    #                                       +r'Server={{ azure_sql_server }};'
+    #                                       +r'Database={{ azure_sql_database }};UID={{ azure_sql_uid }};Pwd={{ azure_sql_password }};'
+    #                                       +r'Encrypt=yes;TrustServerCertificate=yes;Connection Timeout=30;')
+    #       c.JupyterHub.db_url = 'mssql+pyodbc:///?odbc_connect={}'.format(params)
+    #     state: absent
+    #   no_log: True
+    #   notify:
+    #     - Restart jupyterhub
     - name: Set max memory limit per user
-      blockinfile: 
+      ansible.builtin.blockinfile:
         path: /etc/jupyterhub/jupyterhub_config.py
         marker: "#{mark} MEMORY LIMIT (ANSIBLE MANAGED BLOCK)"
         block: |
@@ -133,29 +134,29 @@
       notify:
         - Restart jupyterhub
     - name: Set OOM policy for jupyter to continue
-      lineinfile:
+      ansible.builtin.lineinfile:
         path: /etc/jupyterhub/jupyterhub_config.py
         line: "c.SystemdSpawner.unit_extra_properties = {'OOMPolicy' : 'continue'}"
       notify:
         - Restart jupyterhub
-    - name: set up environment for jupyterhub systemd service
-      copy:
+    - name: Set up environment for jupyterhub systemd service
+      ansible.builtin.copy:
         dest: /etc/jupyterhub/condaenv
         content: |
           AAD_TENANT_ID='{{ aad_tenant_id }}'
           MINICONDA_DIR=/usr/local/anaconda
           PATH=/usr/local/texlive/bin/x86_64-linux/:/usr/local/anaconda/bin:/bin:/usr/bin
-        mode: 0644
+        mode: "0644"
       notify:
         - Restart jupyterhub
-    - name: allow jupyterhub user to spawn kernel as other users
-      copy:
+    - name: Allow jupyterhub user to spawn kernel as other users
+      ansible.builtin.copy:
         dest: /etc/sudoers.d/jupyterhub
         content: |
           jupyterhub ALL=(ALL) NOPASSWD:/usr/local/anaconda/bin/sudospawner
-        mode: 0640
-    - name: enable idle server culler
-      blockinfile:
+        mode: "0640"
+    - name: Enable idle server culler
+      ansible.builtin.blockinfile:
         state: present
         path: /etc/jupyterhub/jupyterhub_config.py
         marker: "#{mark} CULL IDLE SETUP (ANSIBLE MANAGED BLOCK)"
@@ -170,7 +171,7 @@
       notify:
         - Restart jupyterhub
     - name: Setup jupyterhub AAD authentication
-      blockinfile:
+      ansible.builtin.blockinfile:
         path: /etc/jupyterhub/jupyterhub_config.py
         marker: "#{mark} AAD LOGIN (ANSIBLE MANAGED BLOCK)"
         block: |
@@ -190,7 +191,7 @@
         - Restart jupyterhub
 
     - name: Create systemd unit file for jupyterhub
-      copy:
+      ansible.builtin.copy:
         dest: /etc/systemd/system/jupyterhub.service
         content: |
           [Unit]
@@ -208,27 +209,27 @@
 
           [Install]
           WantedBy=multi-user.target
-        mode: 0644
+        mode: "0644"
     - name: Establish jupyterhub system service
-      systemd:
+      ansible.builtin.systemd:
         name: jupyterhub
-        enabled: yes
-        daemon_reload: yes
+        enabled: true
+        daemon_reload: true
         state: started
     # - name: Install k3d labextension (in-browser 3drendering)
     #   shell:
     #     cmd: /usr/local/anaconda/bin/jupyter labextension install k3d
     #     creates: /usr/local/anaconda/share/jupyter/lab/extensions/k3d-*.tgz
     - name: Initialization of standard user conda enviroment
-      copy:
+      ansible.builtin.copy:
         dest: /etc/profile.d/conda.sh
         src: conda.sh
-        mode: 0644
+        mode: "0644"
   handlers:
     - name: Restart jupyterhub
-      systemd:
+      ansible.builtin.systemd:
         name: jupyterhub
         state: restarted
 # TODO
 # add jupyterlab widget plots (only works in notebook, not in console)
-#jupyter labextension install @jupyter-widgets/jupyterlab-manager
+# jupyter labextension install @jupyter-widgets/jupyterlab-manager
