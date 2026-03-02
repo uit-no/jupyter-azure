@@ -183,7 +183,7 @@
           c.AzureAdOAuthenticator.oauth_callback_url = '{{ aad_oauth_callback_url }}'
           c.AzureAdOAuthenticator.client_id = '{{ aad_client_id }}'
           c.AzureAdOAuthenticator.client_secret = '{{ aad_client_secret }}'
-          c.AzureAdOAuthenticator.username_claim="preferred_username"
+          c.AzureAdOAuthenticator.username_claim="upn"
           c.AzureAdOAuthenticator.scope = ['openid', 'email']
           c.AzureAdOAuthenticator.allow_all = True
           c.AzureAdOAuthenticator.login_service = "your UiT user ID."
